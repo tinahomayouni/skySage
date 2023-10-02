@@ -1,8 +1,18 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  NotFoundException,
+  Param,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { WeatherService } from './weather.service';
 import { WeatherRequestDto } from './dto/weather.request.dto';
-import { WeatherResultDto } from './dto/weather.response.dto';
 import { ApiOperation } from '@nestjs/swagger';
+import { query } from 'express';
+import { WeatherResponseDto } from './dto/weather.response.dto';
 
 @Controller()
 export class WeatherController {
@@ -24,10 +34,23 @@ export class WeatherController {
   @Post('weather-forecaster')
   @ApiOperation({ summary: 'Get weather and flag' })
   async getWeatherForecast(
-    @Body() request: WeatherRequestDto,
-  ): Promise<WeatherResultDto[]> {
-    const weatherResults =
-      await this.weatherService.getWeatherForecast(request);
+    @Query() query: WeatherRequestDto,
+  ): Promise<WeatherResponseDto[]> {
+    const { city, country } = query;
+
+    // Check for missing city or country
+    if (!city || !country) {
+      throw new BadRequestException('Invalid data');
+    }
+
+    // Retrieve weather data from the service
+    const weatherResults = await this.weatherService.getWeatherForecast(query);
+
+    // Check if weather data is empty and handle the error
+    if (!weatherResults.length) {
+      throw new NotFoundException('Weather data not found');
+    }
+
     return weatherResults;
   }
 }

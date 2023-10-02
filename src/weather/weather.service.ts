@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Weather } from 'src/entity/weather.entity';
 import { Repository } from 'typeorm';
 import { WeatherRequestDto } from './dto/weather.request.dto';
-import { WeatherResultDto } from './dto/weather.response.dto';
+import { WeatherResponseDto } from './dto/weather.response.dto';
 
 @Injectable()
 export class WeatherService {
@@ -32,26 +32,25 @@ export class WeatherService {
   }
   async getWeatherForecast(
     request: WeatherRequestDto,
-  ): Promise<WeatherResultDto[]> {
-    const weatherResults: WeatherResultDto[] = [];
+  ): Promise<WeatherResponseDto[]> {
+    const { country, city } = request;
 
-    for (const country of request.country) {
-      for (const city of request.city) {
-        const weatherData = await this.weatherRepository.findOne({
-          where: { country, city },
-        });
+    // Query the database for weather data based on country and city
+    const weatherData = await this.weatherRepository.findOne({
+      where: { country, city },
+    });
 
-        if (weatherData) {
-          weatherResults.push({
-            country: weatherData.country,
-            city: weatherData.city,
-            weather: weatherData.weather,
-            flag: weatherData.flag,
-          });
-        }
-      }
+    // Check if data is found and return it
+    if (weatherData) {
+      return [
+        {
+          weather: weatherData.weather,
+          flag: weatherData.flag,
+        },
+      ];
     }
 
-    return weatherResults;
+    // If data is not found, return an empty array
+    return [];
   }
 }
