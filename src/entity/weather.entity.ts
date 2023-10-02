@@ -13,4 +13,7 @@ export class Weather {
 
   @Column()
   weather: number;
+
+  @Column({ type: 'text', nullable: false })
+  flag: string | null;
 }
