@@ -35,7 +35,7 @@ export class WeatherController {
   @ApiOperation({ summary: 'Get weather and flag' })
   async getWeatherForecast(
     @Query() query: WeatherRequestDto,
-  ): Promise<WeatherResponseDto[]> {
+  ): Promise<WeatherResponseDto> {
     const { city, country } = query;
 
     // Check for missing city or country
@@ -47,7 +47,7 @@ export class WeatherController {
     const weatherResults = await this.weatherService.getWeatherForecast(query);
 
     // Check if weather data is empty and handle the error
-    if (!weatherResults.length) {
+    if (!weatherResults) {
       throw new NotFoundException('Weather data not found');
     }
 

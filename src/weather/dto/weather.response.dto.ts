@@ -2,8 +2,8 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class WeatherResponseDto {
   @ApiProperty()
-  weather: number;
+  temperature: number;
 
   @ApiProperty()
-  flag: string | null;
+  weather: string;
 }
