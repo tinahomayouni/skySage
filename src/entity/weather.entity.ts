@@ -12,8 +12,8 @@ export class Weather {
   city: string;
 
   @Column()
-  weather: number;
+  temperature: number;
 
-  @Column({ type: 'text', nullable: false })
-  flag: string | null;
+  @Column()
+  weather: string;
 }

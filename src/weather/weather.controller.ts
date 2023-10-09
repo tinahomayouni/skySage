@@ -1,8 +1,8 @@
 import {
   BadRequestException,
-  Body,
   Controller,
   Get,
+  HttpCode,
   NotFoundException,
   Param,
   Post,
@@ -10,8 +10,7 @@ import {
 } from '@nestjs/common';
 import { WeatherService } from './weather.service';
 import { WeatherRequestDto } from './dto/weather.request.dto';
-import { ApiOperation } from '@nestjs/swagger';
-import { query } from 'express';
+import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { WeatherResponseDto } from './dto/weather.response.dto';
 
 @Controller()
@@ -32,10 +31,12 @@ export class WeatherController {
   }
 
   @Post('weather-forecaster')
-  @ApiOperation({ summary: 'Get weather and flag' })
+  @HttpCode(200)
+  @ApiResponse({ description: 'Get weather and flag' })
+  @ApiResponse({ status: 404, description: 'Failed to find country' })
   async getWeatherForecast(
     @Query() query: WeatherRequestDto,
-  ): Promise<WeatherResponseDto[]> {
+  ): Promise<WeatherResponseDto> {
     const { city, country } = query;
 
     // Check for missing city or country
@@ -47,7 +48,7 @@ export class WeatherController {
     const weatherResults = await this.weatherService.getWeatherForecast(query);
 
     // Check if weather data is empty and handle the error
-    if (!weatherResults.length) {
+    if (!weatherResults) {
       throw new NotFoundException('Weather data not found');
     }
 

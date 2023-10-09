@@ -22,6 +22,9 @@ export class WeatherService {
   }
 
   async findCitiesByCountry(country: string): Promise<string[]> {
+    /**
+     * SELECT DISTINCT city FROM weather WHERE country = netherlands;
+     */
     const distinctCities = await this.weatherRepository
       .createQueryBuilder()
       .select('DISTINCT city')
@@ -32,7 +35,7 @@ export class WeatherService {
   }
   async getWeatherForecast(
     request: WeatherRequestDto,
-  ): Promise<WeatherResponseDto[]> {
+  ): Promise<WeatherResponseDto | null> {
     const { country, city } = request;
 
     // Query the database for weather data based on country and city
@@ -42,15 +45,13 @@ export class WeatherService {
 
     // Check if data is found and return it
     if (weatherData) {
-      return [
-        {
-          weather: weatherData.weather,
-          flag: weatherData.flag,
-        },
-      ];
+      return {
+        temperature: weatherData.temperature,
+        weather: weatherData.weather,
+      };
     }
 
     // If data is not found, return an empty array
-    return [];
+    return null;
   }
 }
