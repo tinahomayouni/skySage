@@ -10,6 +10,7 @@ async function bootstrap() {
     .setTitle('SkySage API')
     .setDescription('Description SkySage')
     .setVersion('1.0')
+    .addBearerAuth() // Enable Bearer Token authentication
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

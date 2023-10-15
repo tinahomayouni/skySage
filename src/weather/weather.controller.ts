@@ -1,17 +1,27 @@
 import {
-  BadRequestException,
   Controller,
   Get,
-  HttpCode,
-  NotFoundException,
-  Param,
   Post,
   Query,
+  Param,
+  HttpCode,
+  BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { WeatherService } from './weather.service';
 import { WeatherRequestDto } from './dto/weather.request.dto';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { WeatherResponseDto } from './dto/weather.response.dto';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
+import { UseGuards } from '@nestjs/common'; // Import UseGuards
+import { AuthGuard } from '@nestjs/passport'; // Import AuthGuard
+import { RolesGuard } from '../auth/roles.guard'; // Import your custom RolesGuard
+import { UserRoles } from 'src/auth/user-roles.decorator';
+import { AddWeatherRequestDto } from './dto/addWeather.request.dto';
 
 @Controller()
 export class WeatherController {
@@ -53,5 +63,36 @@ export class WeatherController {
     }
 
     return weatherResults;
+  }
+
+  @Post('add-weather-forecast')
+  @UseGuards(AuthGuard('jwt'))
+  @UserRoles('admin') // Require 'admin' role for this endpoint
+  @ApiOperation({ summary: 'Add and save weather data' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' }) // Unauthorized response
+  @ApiBearerAuth() // Indicate the need for JWT authentication
+  @ApiResponse({ description: 'Add and save weather data' })
+  @ApiResponse({ status: 400, description: 'Invalid data' })
+  @ApiResponse({ status: 404, description: 'Failed to save weather data' })
+  async addWeatherForecast(
+    @Query() query: AddWeatherRequestDto,
+  ): Promise<AddWeatherRequestDto> {
+    const { city, country, weather, temperature } = query;
+
+    // Check for missing city, country, or weather or temperature
+    if (!city || !country || !weather || !temperature) {
+      throw new BadRequestException('Invalid data');
+    }
+
+    // Save weather data to the service
+    const savedWeatherData =
+      await this.weatherService.saveWeatherForecast(query);
+
+    // Check if saving was successful and handle the error if necessary
+    if (!savedWeatherData) {
+      throw new NotFoundException('Failed to save weather data');
+    }
+
+    return savedWeatherData;
   }
 }

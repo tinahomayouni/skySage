@@ -7,6 +7,12 @@ import { Weather } from 'src/entity/weather.entity';
 @Module({
   imports: [TypeOrmModule.forFeature([Weather])],
   controllers: [WeatherController],
-  providers: [WeatherService],
+  providers: [
+    WeatherService,
+    {
+      provide: 'ALLOWED_ROLES',
+      useValue: ['admin'], // Replace with your actual allowed roles
+    },
+  ],
 })
 export class WeatherModule {}
