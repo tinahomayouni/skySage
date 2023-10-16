@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty } from 'class-validator';
+import { IsString, IsNotEmpty, IsNumber } from 'class-validator';
 
 export class AddWeatherRequestDto {
   @IsNotEmpty()
@@ -13,7 +13,7 @@ export class AddWeatherRequestDto {
   city: string;
 
   @IsNotEmpty()
-  @IsString()
+  @IsNumber()
   @ApiProperty()
   temperature: number;
 
