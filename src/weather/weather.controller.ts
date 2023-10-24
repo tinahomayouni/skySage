@@ -22,6 +22,7 @@ import { UseGuards } from '@nestjs/common'; // Import UseGuards
 import { AddWeatherRequestDto } from './dto/addWeather.request.dto';
 import { AddWeatherResponseDto } from './dto/addWeather.response.dto';
 import { JWTAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { Roles } from 'src/auth/user-roles.decorator';
 
 @Controller()
 export class WeatherController {
@@ -67,9 +68,9 @@ export class WeatherController {
 
   @Post('add-weather-forecast')
   @UseGuards(JWTAuthGuard)
+  @Roles('admin')
   @ApiOperation({ summary: 'Add and save weather data' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' }) // Unauthorized response
-  @ApiBearerAuth() // Indicate the need for JWT authentication
   @ApiResponse({ description: 'Add and save weather data' })
   @ApiResponse({ status: 400, description: 'Invalid data' })
   @ApiResponse({ status: 404, description: 'Failed to save weather data' })

@@ -1,28 +1,63 @@
 // auth/auth.service.ts
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UserService } from '../user/user.service';
 import * as bcrypt from 'bcryptjs';
+import { User } from 'src/entity/user.entity';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private userService: UserService,
+    @InjectRepository(User) // Inject the User repository
+    private userRepository: Repository<User>, // Declare userRepository
     private jwtService: JwtService,
   ) {}
 
   async validateUser(username: string, password: string) {
-    const user = await this.userService.findOne(username);
+    const user = await this.userRepository.findOne({ where: { username } }); // Use FindOneOptions
     if (user && bcrypt.compareSync(password, user.password)) {
       return user;
     }
     return null;
   }
 
-  // async login(user: User) {
-  //   const payload = { username: user.username, sub: user.id, role: user.role };
-  //   return {
-  //     access_token: this.jwtService.sign(payload),
-  //   };
-  // }
+  async login(username: string, password: string): Promise<string> {
+    // Find the user by username
+    const user = await this.userRepository.findOne({ where: { username } });
+
+    if (!user) {
+      // User not found
+      throw new UnauthorizedException('User not found');
+    }
+
+    // Check if the provided password matches the stored hashed password
+    const passwordMatch = await bcrypt.compare(password, user.password);
+
+    if (!passwordMatch) {
+      // Password does not match
+      throw new UnauthorizedException('Incorrect password');
+    }
+
+    // If the username and password are correct, generate a JWT token
+    const payload = { sub: user.id, username: user.username };
+    const token = this.jwtService.sign(payload);
+
+    return token;
+  }
+  async signupUser(username: string, password: string): Promise<string> {
+    // Hash the user's password
+    const hashedPassword = await bcrypt.hash(password, 10);
+    //const hashedPassword = await encode(password, 10);
+    // Create a new user entity
+    const newUser = this.userRepository.create({
+      username,
+      password: hashedPassword,
+    });
+
+    // Save the user to the database
+    await this.userRepository.save(newUser);
+
+    return 'User successfully signed up';
+  }
 }
