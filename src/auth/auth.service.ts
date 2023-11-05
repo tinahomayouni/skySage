@@ -1,10 +1,15 @@
 // auth/auth.service.ts
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { User } from 'src/entity/user.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { UserUpdateDto } from 'src/user/dto/user.update.dto';
 
 @Injectable()
 export class AuthService {
@@ -45,7 +50,7 @@ export class AuthService {
 
     return token;
   }
-  async signupUser(username: string, password: string): Promise<string> {
+  async signUpUser(username: string, password: string): Promise<string> {
     // Hash the user's password
     const hashedPassword = await bcrypt.hash(password, 10);
     //const hashedPassword = await encode(password, 10);
@@ -59,5 +64,35 @@ export class AuthService {
     await this.userRepository.save(newUser);
 
     return 'User successfully signed up';
+  }
+  async editUser(id: number, updateDto: UserUpdateDto): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { id } });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Update user information
+    if (updateDto.username) {
+      user.username = updateDto.username;
+    }
+
+    if (updateDto.password) {
+      const hashedPassword = await bcrypt.hash(updateDto.password, 10);
+      user.password = hashedPassword;
+    }
+
+    const updatedUser = await this.userRepository.save(user);
+
+    return updatedUser;
+  }
+  async deleteUser(id: number): Promise<void> {
+    const user = await this.userRepository.findOne({ where: { id } });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    await this.userRepository.remove(user);
   }
 }

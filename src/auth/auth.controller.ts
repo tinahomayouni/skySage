@@ -1,9 +1,21 @@
-import { Body, Controller, HttpCode, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  HttpCode,
+  Param,
+  Post,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
 import { LoginRequestDto } from './dto/login.request.dto';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { AuthService } from './auth.service';
 import { Roles } from './user-roles.decorator';
 import { SignupDto } from 'src/user/dto/user.request.dto';
+import { User } from 'src/entity/user.entity';
+import { UserUpdateDto } from 'src/user/dto/user.update.dto';
+import { JWTAuthGuard } from './guards/jwt-auth.guard';
 
 @Controller()
 export class AuthController {
@@ -14,7 +26,7 @@ export class AuthController {
   @HttpCode(201)
   async signup(@Body() signupDto: SignupDto): Promise<string> {
     const { username, password } = signupDto;
-    return this.authService.signupUser(username, password);
+    return this.authService.signUpUser(username, password);
   }
 
   @Post('login')
@@ -25,5 +37,22 @@ export class AuthController {
     const token = await this.authService.login(username, password);
 
     return { access_token: token };
+  }
+  @Put('user-edit/:id')
+  //should be better use guard first ??
+  //@UseGuards(JWTAuthGuard)
+  @Roles('admin')
+  @HttpCode(200)
+  async editUser(
+    @Param('id') id: number,
+    @Body() updateDto: UserUpdateDto,
+  ): Promise<User> {
+    return this.authService.editUser(id, updateDto);
+  }
+  @Delete('delete/:id')
+  @Roles('admin')
+  @HttpCode(204)
+  async deleteUser(@Param('id') id: number): Promise<void> {
+    await this.authService.deleteUser(id);
   }
 }
