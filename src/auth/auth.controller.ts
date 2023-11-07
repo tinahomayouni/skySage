@@ -16,12 +16,16 @@ import { SignupDto } from 'src/user/dto/user.request.dto';
 import { User } from 'src/entity/user.entity';
 import { UserUpdateDto } from 'src/user/dto/user.update.dto';
 import { JWTAuthGuard } from './guards/jwt-auth.guard';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { RolesGuard } from './guards/roles.guard';
 
 @Controller()
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('signup')
+  @ApiBearerAuth()
+  @UseGuards(JWTAuthGuard, RolesGuard)
   @Roles('admin')
   @HttpCode(201)
   async signup(@Body() signupDto: SignupDto): Promise<string> {
@@ -38,9 +42,9 @@ export class AuthController {
 
     return { access_token: token };
   }
+
   @Put('user-edit/:id')
-  //should be better use guard first ??
-  //@UseGuards(JWTAuthGuard)
+  @UseGuards(JWTAuthGuard)
   @Roles('admin')
   @HttpCode(200)
   async editUser(

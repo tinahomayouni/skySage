@@ -19,6 +19,10 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
+  async getUser(userId: number) {
+    return this.userRepository.findOne({ where: { id: userId } }); // Use FindOneOptions
+  }
+
   async validateUser(username: string, password: string) {
     const user = await this.userRepository.findOne({ where: { username } }); // Use FindOneOptions
     if (user && bcrypt.compareSync(password, user.password)) {
@@ -50,6 +54,7 @@ export class AuthService {
 
     return token;
   }
+
   async signUpUser(username: string, password: string): Promise<string> {
     // Hash the user's password
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -65,6 +70,7 @@ export class AuthService {
 
     return 'User successfully signed up';
   }
+
   async editUser(id: number, updateDto: UserUpdateDto): Promise<User> {
     const user = await this.userRepository.findOne({ where: { id } });
 
