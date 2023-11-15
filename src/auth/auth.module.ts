@@ -21,16 +21,7 @@ import { User } from '../entity/user.entity'; // Import your User entity
     TypeOrmModule.forFeature([User]), // Provide the User repository here
   ],
   controllers: [AuthController],
-  providers: [
-    AuthService,
-    LocalStrategy,
-    JwtStrategy,
-    {
-      provide: 'ALLOWED_ROLES',
-      useValue: ['admin'], // Define your allowed roles here
-    },
-    RolesGuard,
-  ],
+  providers: [AuthService, LocalStrategy, JwtStrategy, RolesGuard],
   exports: [AuthService],
 })
 export class AuthModule {}
